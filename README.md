@@ -10,22 +10,28 @@ Converts between KMP and Excel (.xlsx) files. For more details, please see [Wiki
 
 # Usage
 ```bash
-python -m k2x {k2x, x2k} -i <input> [-o <output>]
+python -m k2x [{k2x, x2k, auto}] -i <input> [-o <output>]
 ```
 
-- `{k2x, x2k}`: Convert KMP to Excel (`k2x`) or Excel to KMP (`x2k`)
-- `<input>`: Input file path
-- `<output>`: Output file path (optional) if not specified, the output file will be saved in the same directory as the input file with the same name and the extension changed.
+- `{k2x, x2k, auto}`: Type of conversion (optional). k2x: KMP to Excel, x2k: Excel to KMP, auto: automatically detect the type by the file extension. (Default: `auto`)
+- `<input>`: Input file path (**Required**)
+- `<output>`: Output file path (optional). If unspecified, the output file will be saved in the same directory as the input file with the same name and the extension changed.
 
 ## Examples
 ### Convert KMP to Excel
 ```bash
-python -m k2x k2x -i <input.kmp> [-o <output.xlsx>]
+python -m k2x -i course.kmp -o mytrack.xlsx
+
+# No output specified -> save to path/to/save/course.xlsx
+python -m k2x -i path/to/save/course.kmp
 ```
 
 ### Convert Excel to KMP
 ```bash
-python -m k2x x2k -i <input.xlsx> [-o <output.kmp>]
+python -m k2x -i mytrack.xlsx -o course.kmp
+
+# No output specified -> save to path/to/save/course.kmp
+python -m k2x -i path/to/save/course.xlsx
 ```
 
 # NOTE

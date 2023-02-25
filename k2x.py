@@ -11,6 +11,15 @@ def add_ext_if_missing(filename: str, ext: str):
 
 
 def main(args):
+    if args.type == 'auto':
+        _, ext = os.path.splitext(args.input)
+        if ext == '.kmp':
+            args.type = 'k2x'
+        elif ext == '.xlsx':
+            args.type = 'x2k'
+        else:
+            raise ValueError(f'Unknown file extension: {ext}')
+
     if args.type == 'k2x':
         args.input = add_ext_if_missing(args.input, '.kmp')
         if args.output is None:
@@ -30,23 +39,37 @@ def main(args):
     print('Done.')
 
 
+class ShowDefaultIf(argparse.ArgumentDefaultsHelpFormatter):
+    def _get_help_string(self, action):
+        if action.required:
+            return action.help
+        return super()._get_help_string(action)
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         "k2x converter",
         description=(
-            "Converts between KMP and Excel (.xlsx) files. "
-            "\nFor more details, please see Wiki page."
-        )
+            "Converts between KMP (.kmp) and Excel (.xlsx) files. "
+        ),
+        formatter_class=ShowDefaultIf
     )
     parser.add_argument(
-        'type', choices=['k2x', 'x2k'],
-        help='Type of conversion. k2x: KMP to Excel, x2k: Excel to KMP.'
+        'type', choices=['k2x', 'x2k', 'auto'], nargs='?', default='auto',
+        help=(
+            'Type of conversion. k2x: KMP to Excel, x2k: Excel to KMP,'
+            ' auto: automatically detect the type by the file extension.'
+        )
     )
     parser.add_argument('--input', '-i', help='Input file', required=True)
     parser.add_argument(
         '--output', '-o',
-        help='Output path. If not specified, the output file will be saved in the same directory as the input file.',
-        default=None)
+        help=(
+            'Output path. If not specified, the output file will be saved '
+            'in the same directory as the input file.'
+        ),
+        default=None
+    )
 
     args = parser.parse_args()
     main(args)
