@@ -10,7 +10,7 @@ Converts between KMP and Excel (.xlsx) files. For more details, please see [Wiki
 
 # Usage
 ```bash
-python -m {k2x, x2k} -i <input> [-o <output>]
+python -m k2x {k2x, x2k} -i <input> [-o <output>]
 ```
 
 - `{k2x, x2k}`: Convert KMP to Excel (`k2x`) or Excel to KMP (`x2k`)
@@ -20,12 +20,12 @@ python -m {k2x, x2k} -i <input> [-o <output>]
 ## Examples
 ### Convert KMP to Excel
 ```bash
-python -m k2x -i <input.kmp> [-o <output.xlsx>]
+python -m k2x k2x -i <input.kmp> [-o <output.xlsx>]
 ```
 
 ### Convert Excel to KMP
 ```bash
-python -m k2x -i <input.xlsx> [-o <output.kmp>]
+python -m k2x x2k -i <input.xlsx> [-o <output.kmp>]
 ```
 
 # NOTE
