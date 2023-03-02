@@ -40,4 +40,4 @@ python -m k2x -i path/to/save/course.xlsx
 
 # TODO
 - [ ] Replace print and warning messages to output from logger
-- [ ] Section support
+- [ ] Section checker support
