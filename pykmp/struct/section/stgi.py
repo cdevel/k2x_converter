@@ -1,4 +1,3 @@
-import dataclasses
 import warnings
 
 from typing_extensions import Self
@@ -6,7 +5,8 @@ from typing_extensions import Self
 from pykmp._io._parser import _BinaryParser as Parser
 from pykmp._typing import RGB, Byte, Float
 from pykmp.struct.core import BaseSection, BaseStruct
-from pykmp.struct.section._utils import CustomFnSpec, section_add_attrs
+from pykmp.struct.section._utils import (CustomFnSpec, check_range,
+                                         section_add_attrs, struct_decorate)
 
 
 def _parse_stgi_speedfactor(parser: Parser):
@@ -29,7 +29,12 @@ STGI_SPEC = {
 }
 
 
-@dataclasses.dataclass(eq=False)
+@struct_decorate(
+    lap=check_range(10),
+    poleposition=check_range(2),
+    distancetype=check_range(2),
+    flareflash=check_range(2),
+)
 class STGIStruct(BaseStruct):
     lap: Byte
     poleposition: Byte

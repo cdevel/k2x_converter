@@ -1,11 +1,9 @@
-import dataclasses
-
 from pykmp._typing import XYZ, Float, Int16, UInt16
 from pykmp.struct.core import BaseSection, BaseStruct
-from pykmp.struct.section._utils import section_add_attrs
+from pykmp.struct.section._utils import section_add_attrs, struct_decorate
 
 
-@dataclasses.dataclass(eq=False)
+@struct_decorate
 class JGPTStruct(BaseStruct):
     pos: Float[XYZ]
     rot: Float[XYZ]

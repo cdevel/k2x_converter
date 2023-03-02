@@ -1,14 +1,13 @@
-import dataclasses
-import warnings
-
-from typing_extensions import Self
-
 from pykmp._typing import XYZ, Byte, Float, UInt16
 from pykmp.struct.core import BaseSection, BaseStruct
-from pykmp.struct.section._utils import section_add_attrs
+from pykmp.struct.section._utils import (check_range, section_add_attrs,
+                                         struct_decorate)
 
 
-@dataclasses.dataclass(eq=False)
+@struct_decorate(
+    type=check_range(10),
+    time=check_range(6001) # 99:59.99
+)
 class CAMEStruct(BaseStruct):
     type: Byte
     next: Byte
@@ -47,10 +46,3 @@ class CAME(BaseSection):
     viewendpos: Float[XYZ]
     time: Float
 
-    def _check_struct(self: Self, index: int, data: CAMEStruct):
-        if data.time < 0:
-            warnings.warn(
-                f"CAME #{index:X} has a negative time. "
-                "pykmp will set it to 0."
-            )
-            data.time = Float.convert(0.)

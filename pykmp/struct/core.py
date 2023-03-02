@@ -39,7 +39,22 @@ class HexPrinter:
 
 
 class BaseStruct:
-    """Base class for all KMP structs"""
+    """
+    Base class for all KMP structs
+
+    Note for developers:
+        This class should be decorated by `pykmp.struct._utils.struct_decorate`.
+
+    Example:
+
+    >>> @struct_decorate(
+    ...    property1=ValueRangeCheck(0, 7, 0) # property1 must be in range of 0 to 7
+    ... )
+    >>> class MyStruct(BaseStruct):
+    ...    pos: Float[XYZ]
+    ...    property1: Byte
+    ...    property2: Byte
+    """
     def __eq__(self: Self, other: Self) -> bool:
         _data = dataclasses.asdict(self)
         _other_data = dataclasses.asdict(other)
@@ -52,11 +67,21 @@ class BaseStruct:
     def __setattr__(self: Self, __name: str, __value: Any) -> None:
         if hasattr(self, __name):
             _tvalue = getattr(self, __name)
-            __value = np.array(__value, dtype=_tvalue.dtype)
+            __value = _tvalue.dtype.type(__value)
             if __value.shape != _tvalue.shape:
                 raise ValueError(
                     f"Cannot change the shape of {__name} to {__value.shape}"
                 )
+            try:
+                rangecheker = self.__rangedict__.get(__name, None)
+                if rangecheker is not None:
+                    __value = _tvalue.dtype.type(
+                        rangecheker(
+                            __value, f"{__name} of {self.__class__.__name__}"
+                        )
+                    )
+            except AttributeError:
+                pass
         super().__setattr__(__name, __value)
 
     def tolist(self: Self, as_hex: bool = False) -> dict[str, Any]:
@@ -85,9 +110,6 @@ class BaseStruct:
         for v in dataclasses.asdict(self).values():
             _bytes.append(tobytes(v, v.dtype))
         return b''.join(_bytes)
-
-    def check(self, raises: bool = True, fix_if_possible: bool = False):
-        pass
 
     @property
     def hex(self: Self):
@@ -199,11 +221,19 @@ class BaseSection:
     def _repr_html_(self: Self) -> str:
         return self.to_dataframe()._repr_html_()
 
+    @property
+    def section(self: Self):
+        return self.__rname__
+
+    @property
+    def entries(self: Self):
+        return len(self._rdata)
+
     def add(
         self: Self, obj: Self | BaseStruct, copy: bool = True
     ) -> Self:
         """Add a new struct/section to the section"""
-        assert self.__indexing__, f"Cannot add to {self.section}"
+        assert self.__indexing__, f"Cannot add to {self.__rname__}"
         if dataclasses.is_dataclass(obj):
             if self._rdata[0] != obj:
                 raise ValueError("Cannot append different Struct.")
@@ -215,7 +245,7 @@ class BaseSection:
         else:
             raise TypeError(
                 f"Cannot add {obj.__class__.__name__} to "
-                f"{self.section}."
+                f"{self.__rname__}."
             )
         self._sync_entries()
         if copy:
@@ -248,20 +278,25 @@ class BaseSection:
         return arry
 
     def _psetter(self: Self, name: str, value: np.ndarray):
+        # get base dtype
         dt, elem = self._metadata[name]
         dt, _ = t.get_dtype_and_size(dt)
         value = dt.type(value)
-        if not self.__indexing__ and value.ndim == 0:
+
+        if not self.__indexing__ and value.ndim == 0: # STGI
             value = value[None]
+
         if isinstance(elem, int):
             elem = (elem,)
-        expected_shape = (int(self.entries), *elem)
-        # TODO: supprt single value
+        expected_shape = (len(self), *elem)
+
         if len(expected_shape) != value.ndim:
-            if not (
-                len(expected_shape) > 1
-                and expected_shape[-1] == 1
-                and value.ndim == len(expected_shape) - 1
+            if value.ndim == 0: # single value -> broadcast
+                value = np.full(expected_shape, value, dtype=dt)
+            elif not (
+                len(expected_shape) > 1 # 1D array
+                and expected_shape[-1] == 1 # last dim is 1
+                and value.ndim == len(expected_shape) - 1 # one less dim
             ):
                 raise ValueError(
                     f"Shape mismatch. Expected {expected_shape}, "
@@ -272,7 +307,7 @@ class BaseSection:
 
     def _to_descriptor(
         self: Self,
-        itemkey : slice | Sequence[int] | None,
+        itemkey : slice | Sequence[int] | None = None,
         copy: bool = False
     ) -> DataDescriptor:
         kwg = dict()
@@ -290,6 +325,7 @@ class BaseSection:
         special_name = _SpecialName.get(self.section, 'ignored')
         if self.section == 'CAME':
             op_camera = getattr(self, special_name[0])
+            # TODO: move this to _check_section()
             if op_camera not in itemkeys:
                 warnings.warn(
                     'The CAME opening index is not in the itemkey. '
@@ -319,7 +355,7 @@ class BaseSection:
 
     def tobytes(self: Self):
         """Convert section to bytes. Used for writing to file."""
-        descriptor = self._to_descriptor(None)
+        descriptor = self._to_descriptor()
         b = b''
         b += tobytes(descriptor.section)
         #b += desciptor.section.encode('utf-8')
@@ -362,8 +398,6 @@ class BaseSection:
         assert self.__rname__ == descriptor.section, (
             "Cannot init from descriptor of different section."
         )
-        setattr(self, "section", descriptor.section)
-        setattr(self, "entries", descriptor.entries)
 
         if descriptor.special_name is not None:
             if type(descriptor.special_name) is list:
@@ -387,8 +421,8 @@ class BaseSection:
         entries = parser.read_uint16()
 
         # set attributes header info
-        setattr(self, "section", section)
-        setattr(self, "entries", entries)
+        # setattr(self, "section", section)
+        # setattr(self, "entries", entries)
         special_name = _SpecialName.get(section, None)
         if type(special_name) is str:
             setattr(self, special_name, parser.read_uint16())
@@ -483,7 +517,7 @@ class BaseSection:
                     f"({total_points} > 255)."
                 )
             self.total_points = total_points
-        self.entries = np.uint16(len(self._rdata))
+        # self.entries = np.uint16(len(self._rdata))
 
     def __str__(self: Self) -> str:
         if self.__indexing__:

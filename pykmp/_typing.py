@@ -5,6 +5,7 @@ import numpy.typing as npt
 
 _Element = TypeVar("_Element", bound=int)
 DataClass = Any
+Struct = TypeVar("Struct")
 Scalar = NewType("Scalar", int)
 XYZ = NewType("XYZ", int)
 XY = NewType("XY", int)

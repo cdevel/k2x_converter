@@ -1,7 +1,6 @@
 import dataclasses
 import warnings
-from types import EllipsisType
-from typing import Iterable, Union
+from typing import Any, Iterable
 
 import numpy as np
 from typing_extensions import Self
@@ -9,7 +8,8 @@ from typing_extensions import Self
 from pykmp._io._parser import _BinaryParser as Parser
 from pykmp._typing import NXYZ, XYZ, Byte, Float, NScalar, UInt16
 from pykmp.struct.core import BaseSection, BaseStruct
-from pykmp.struct.section._utils import CustomFnSpec, section_add_attrs
+from pykmp.struct.section._utils import (CustomFnSpec, check_range,
+                                         section_add_attrs, struct_decorate)
 from pykmp.utils import tobytes
 
 
@@ -42,14 +42,16 @@ POTI_SPEC = {
 
 
 @dataclasses.dataclass(eq=False)
-class PotiPoints:
-    index: Union[int, slice, Iterable[int], EllipsisType]
+class POTIObject:
     pos: Float[XYZ]
     property1: UInt16
     property2: UInt16
 
 
-@dataclasses.dataclass(eq=False)
+@struct_decorate(
+    smooth=check_range(2),
+    forward_backward=check_range(2),
+)
 class POTIStruct(BaseStruct):
     numpoints: UInt16
     smooth: Byte
@@ -57,6 +59,13 @@ class POTIStruct(BaseStruct):
     pos: Float[NXYZ]
     property1: UInt16[NScalar]
     property2: UInt16[NScalar]
+
+    def __setattr__(self: Self, __name: str, __value: Any) -> None:
+        if hasattr(self, __name) and __name == 'numpoints':
+            raise AttributeError(
+                "can't set attribute 'numpoints'"
+            )
+        super().__setattr__(__name, __value)
 
     def __len__(self: Self):
         return self.numpoints
@@ -73,11 +82,7 @@ class POTIStruct(BaseStruct):
         return b
 
     def __getitem__(self: Self, index: int | slice | Iterable[int]):
-        if (isinstance(index, Iterable)
-            and not all(isinstance(i, int) for i in index)):
-            raise TypeError("Index must be int, slice, or iterable of ints")
-        return PotiPoints(
-            index,
+        return POTIObject(
             self.pos[index],
             self.property1[index],
             self.property2[index],
@@ -85,14 +90,9 @@ class POTIStruct(BaseStruct):
 
     def __setitem__(
         self,
-        index: int | slice | Iterable[int] | EllipsisType,
-        value: PotiPoints
+        index: int | slice | Iterable[int],
+        value: POTIObject
     ):
-        if (
-            isinstance(index, Iterable)
-            and not all(isinstance(i, int) for i in index)
-        ):
-            raise TypeError("Index must be int, slice, or iterable of ints")
         self.pos[index] = value.pos
         self.property1[index] = value.property1
         self.property2[index] = value.property2
@@ -106,6 +106,16 @@ class POTI(BaseSection):
     pos: Float[NXYZ]
     property1: UInt16[NScalar]
     property2: UInt16[NScalar]
+
+    def __setattr__(self: Self, __name: str, __value: Any) -> None:
+        if (
+            hasattr(self, __name)
+            and __name in ('numpoints', 'total_points')
+        ):
+            raise AttributeError(
+                f"can't set attribute '{__name}'"
+            )
+        super().__setattr__(__name, __value)
 
     def _check_struct(self: Self, index: int, data: POTIStruct):
         if data.smooth > 1:

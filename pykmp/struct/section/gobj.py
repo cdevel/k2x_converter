@@ -7,7 +7,8 @@ from typing_extensions import Self
 from pykmp._io._parser import _BinaryParser as Parser
 from pykmp._typing import XYZ, Bit, Byte, Float, Settings, UInt16
 from pykmp.struct.core import BaseSection, BaseStruct
-from pykmp.struct.section._utils import CustomFnSpec, section_add_attrs
+from pykmp.struct.section._utils import (CustomFnSpec, check_range,
+                                         section_add_attrs, struct_decorate)
 from pykmp.utils import tobytes
 
 _POTI_REQUIRED = [
@@ -114,7 +115,15 @@ def _to_object_id(
     return originobjID
 
 
-@dataclasses.dataclass(eq=False)
+@struct_decorate(
+    defobj_type=check_range(8),
+    lecode_show=check_range(2),
+    preserved=check_range(4),
+    objectID=check_range(1024),
+    mode=check_range(16),
+    parameters=check_range(64),
+    unused=check_range(8),
+)
 class GOBJStruct(BaseStruct):
     defobj_type: Byte
     lecode_show: Bit

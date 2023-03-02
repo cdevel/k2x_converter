@@ -1,14 +1,14 @@
-import dataclasses
 import warnings
 
 import numpy as np
 
 from pykmp._typing import XYZ, Byte, Float, Group, UInt16
 from pykmp.struct.core import BaseSection, BaseStruct
-from pykmp.struct.section._utils import section_add_attrs
+from pykmp.struct.section._utils import (check_range, section_add_attrs,
+                                         struct_decorate)
 
 
-@dataclasses.dataclass(eq=False)
+@struct_decorate
 class ENPTStruct(BaseStruct):
     pos: Float[XYZ]
     range: Float
@@ -26,7 +26,9 @@ class ENPT(BaseSection):
     property3: Byte
 
 
-@dataclasses.dataclass(eq=False)
+@struct_decorate(
+    dispatch1=check_range(8),
+)
 class ENPHStruct(BaseStruct):
     start: Byte
     length: Byte

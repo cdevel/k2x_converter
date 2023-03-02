@@ -1,11 +1,11 @@
-import dataclasses
+import warnings
 
 from pykmp._typing import XYZ, Byte, Float, UInt16
 from pykmp.struct.core import BaseSection, BaseStruct
-from pykmp.struct.section._utils import section_add_attrs
+from pykmp.struct.section._utils import section_add_attrs, struct_decorate
 
 
-@dataclasses.dataclass(eq=False)
+@struct_decorate
 class AREAStruct(BaseStruct):
     shape: Byte
     type: Byte
@@ -35,3 +35,10 @@ class AREA(BaseSection):
     potiID: Byte
     enptID: Byte
     unknown: UInt16
+
+    def _check_struct(self, index: int, data: AREAStruct):
+        if data.shape > 1:
+            warnings.warn(
+                f"shape of AREA #{index:X} is out of range; "
+                f"Ignore it if additional type is defined in LEX. "
+            )

@@ -1,13 +1,11 @@
-import dataclasses
-
 import numpy as np
 
 from pykmp._typing import XY, Byte, Float, Group, Int16
 from pykmp.struct.core import BaseSection, BaseStruct
-from pykmp.struct.section._utils import section_add_attrs
+from pykmp.struct.section._utils import section_add_attrs, struct_decorate
 
 
-@dataclasses.dataclass(eq=False)
+@struct_decorate
 class CKPTStruct(BaseStruct):
     left: Float[XY]
     right: Float[XY]
@@ -27,7 +25,7 @@ class CKPT(BaseSection):
     next: Byte
 
 
-@dataclasses.dataclass(eq=False)
+@struct_decorate
 class CKPHStruct(BaseStruct):
     start: Byte
     length: Byte

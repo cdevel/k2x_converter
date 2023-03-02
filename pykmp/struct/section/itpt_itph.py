@@ -1,11 +1,9 @@
-import dataclasses
-
 from pykmp._typing import XYZ, Byte, Float, Group, Int16, UInt16
 from pykmp.struct.core import BaseSection, BaseStruct
-from pykmp.struct.section._utils import section_add_attrs
+from pykmp.struct.section._utils import section_add_attrs, struct_decorate
 
 
-@dataclasses.dataclass(eq=False)
+@struct_decorate
 class ITPTStruct(BaseStruct):
     pos: Float[XYZ]
     range: Float
@@ -21,7 +19,7 @@ class ITPT(BaseSection):
     property2: UInt16
 
 
-@dataclasses.dataclass(eq=False)
+@struct_decorate
 class ITPHStruct(BaseStruct):
     start: Byte
     length: Byte
