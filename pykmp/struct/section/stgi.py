@@ -1,6 +1,8 @@
 import dataclasses
 import warnings
 
+from typing_extensions import Self
+
 from pykmp._io._parser import _BinaryParser as Parser
 from pykmp._typing import RGB, Byte, Float
 from pykmp.struct.core import BaseSection, BaseStruct
@@ -52,24 +54,24 @@ class STGI(BaseSection):
     unused2: Byte
     speedfactor: Float
 
-    def tobytes(self):
+    def tobytes(self: Self) -> bytes:
         return super().tobytes()[:-2]
 
-    def _check_struct(self, index: int, data: STGIStruct):
+    def _check_struct(self: Self, index: int, data: STGIStruct):
         super()._check_struct(index, data)
         if data.lap > 9:
             warnings.warn(
                 f"lap must be less than 10. pykmp will set it to 9.")
-            data.lap = 9
+            data.lap = Byte.convert(9)
         if data.poleposition > 1:
             warnings.warn(
                 f"poleposition must be 0 or 1. pykmp will set it to 0.")
-            data.poleposition = 0
+            data.poleposition = Byte.convert(0)
         if data.distancetype > 1:
             warnings.warn(
                 f"distancetype must be 0 or 1. pykmp will set it to 0.")
-            data.distancetype = 0
+            data.distancetype = Byte.convert(0)
         if data.flareflash > 1:
             warnings.warn(
                 f"flareflash must be 0 or 1. pykmp will set it to 0.")
-            data.flareflash = 0
+            data.flareflash = Byte.convert(0)

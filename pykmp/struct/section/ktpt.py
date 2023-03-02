@@ -1,5 +1,7 @@
 import dataclasses
 
+from typing_extensions import Self
+
 from pykmp._typing import XYZ, Float, Int16, UInt16
 from pykmp.struct.core import BaseSection, BaseStruct
 from pykmp.struct.section._utils import section_add_attrs
@@ -20,7 +22,7 @@ class KTPT(BaseSection):
     playerIndex: Int16
     unknown: UInt16
 
-    def _check_struct(self, index: int, data: KTPTStruct):
+    def _check_struct(self: Self, index: int, data: KTPTStruct):
         if data.playerIndex > 11:
             raise ValueError(
                 f"playerIndex of KTPT #{index:X} is out of range. "

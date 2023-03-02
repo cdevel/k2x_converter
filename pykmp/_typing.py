@@ -1,10 +1,10 @@
-from typing import Any, ClassVar, Generic, NewType, TypeVar, Union
+from typing import Any, ClassVar, Generic, NewType, TypeVar
 
 import numpy as np
 import numpy.typing as npt
 
 _Element = TypeVar("_Element", bound=int)
-DataClass = Union[type, Any]
+DataClass = Any
 Scalar = NewType("Scalar", int)
 XYZ = NewType("XYZ", int)
 XY = NewType("XY", int)
@@ -24,6 +24,12 @@ class _DTypeMeta(type):
 
 class _Dtype(metaclass=_DTypeMeta):
     __type__: ClassVar[npt.DTypeLike] = None
+
+    @classmethod
+    def convert(cls, value: Any) -> Any:
+        if not isinstance(cls.__type__, np.dtype):
+            return cls.__type__(value)
+        return cls.__type__.type(value)
 
     def __repr__(self):
         return self.__class__.__name__

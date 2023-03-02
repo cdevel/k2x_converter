@@ -2,12 +2,22 @@ import dataclasses
 import warnings
 
 import numpy as np
+from typing_extensions import Self
 
 from pykmp._io._parser import _BinaryParser as Parser
 from pykmp._typing import XYZ, Bit, Byte, Float, Settings, UInt16
 from pykmp.struct.core import BaseSection, BaseStruct
 from pykmp.struct.section._utils import CustomFnSpec, section_add_attrs
 from pykmp.utils import tobytes
+
+_POTI_REQUIRED = [
+    114, 201, 202, 204, 205, 206, 207,
+    208, 209, 210, 211, 212, 213, 214,
+    215, 216, 217, 218, 221, 222, 226,
+    227, 228, 229, 231, 232, 233, 235,
+    236, 237, 238, 329, 401, 402, 403,
+    408, 409, 411, 412, 512, 529
+]
 
 
 def _parse_object_id(parser: Parser):
@@ -185,8 +195,15 @@ class GOBJ(BaseSection):
     def le_mode(self) -> bool:
         return np.any(self.mode > 0).item()
 
-    def _check_struct(self, index: int, data: GOBJStruct):
+    def _check_struct(self: Self, index: int, data: GOBJStruct):
         super()._check_struct(index, data)
+
+        if data.objectID in _POTI_REQUIRED and data.routeID == 0xFFFF:
+            warnings.warn(
+                f"The object (ID: 0x{data.objectID:X}) of GOBJ #{index:X} "
+                "requires a route ID, but it is not specified."
+            )
+
         def _raise_if_over(name, max_value):
             value = getattr(data, name)
             if value > max_value:
@@ -208,13 +225,9 @@ class GOBJ(BaseSection):
             data.preserved != 0
         ):
             # this object is not show in the game
-            objID = _to_object_id(
-                data.defobj_type, data.lecode_show,
-                data.preserved, data.objectID
-            )
             warnings.warn(
-                f"The object (ID: 0x{objID:04X}) of GOBJ #{index:X} is not show "
-                "in the game. To show it, set mode to 1 or higher."
+                f"The object (ID: 0x{data.robjectID:X}) of GOBJ #{index:X} "
+                "is not show in the game. To show it, set mode to 1 or higher."
             )
         # LE-MODE
         elif data.mode == 1:
@@ -243,7 +256,7 @@ class GOBJ(BaseSection):
                         f"For defobj_type={data.defobj_type} of GOBJ #{index:X}, "
                         "routeID should be 0xFFFF. pykmp will set it to 0xFFFF."
                     )
-                    data.routeID = np.uint16(0xFFFF)
+                    data.routeID = UInt16.convert(0xFFFF)
             # predefined condition
             if (
                 (0 < data.referenceID <= 0x1FFF)

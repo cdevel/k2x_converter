@@ -67,13 +67,17 @@ class BaseStruct:
                 if as_hex and v.dtype.kind == 'u':
                     item = hex(item)
                 ret.append(item)
-            elif len(v.shape) == 1:  # 1D array
-                if as_hex and v.dtype.kind == 'u':
-                    ret.extend(np.vectorize(hex)(v).tolist())
-                else:
-                    ret.extend(v.tolist())
-            else: # 2D array (poti)
-                ret.append(v)
+                continue
+
+            if as_hex and v.dtype.kind == 'u':
+                v = np.vectorize(hex)(v)
+
+            if len(v.shape) == 1:
+                appender = 'extend'
+                v = v.tolist()
+            else: # POTI
+                appender = 'append'
+            getattr(ret, appender)(v)
         return ret
 
     def tobytes(self: Self) -> bytes:

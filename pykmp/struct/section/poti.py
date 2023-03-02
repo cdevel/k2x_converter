@@ -1,4 +1,5 @@
 import dataclasses
+import warnings
 from types import EllipsisType
 from typing import Iterable, Union
 
@@ -106,3 +107,23 @@ class POTI(BaseSection):
     property1: UInt16[NScalar]
     property2: UInt16[NScalar]
 
+    def _check_struct(self: Self, index: int, data: POTIStruct):
+        if data.smooth > 1:
+            warnings.warn(
+                f"smooth of POTI #{index:X} must be 0 or 1, "
+                "pykmp will set it to 0"
+            )
+            data.smooth = Byte.convert(0)
+        if data.forward_backward > 1:
+            warnings.warn(
+                f"forward_backward of POTI #{index:X} must be 0 or 1, "
+                "pykmp will set it to 0"
+            )
+            data.forward_backward = Byte.convert(0)
+
+        if data.smooth == 1 and len(data) < 3:
+            warnings.warn(
+                f"smooth of POTI #{index:X} is 1, "
+                "but the number of points is less than 3."
+                "This will freeze the game."
+            )
