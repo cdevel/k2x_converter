@@ -57,7 +57,6 @@ class ENPH(BaseSection):
             warnings.warn(f"ENPH #{index:X} has no next group.")
         # dispatch1: 0 <= x <= 7.
         if np.any(data.dispatch1 > 7):
-            print(data.dispatch1)
             raise ValueError(
                 f"dispatch1(0x0E) must be 0 <= x <= 7. (ENPH #{index:X})")
         # https://wiki.tockdom.com/wiki/Enemy_routes_in_battle_arenas

@@ -60,6 +60,7 @@ def split_pt_ph(
         df_ph = df_ph.reset_index(drop=True)
     else:
         # to detect old version
+        print("Converting from old version.")
         df_ph.insert(0, "Unnamed: 0", np.nan)
     return df_pt, df_ph
 
