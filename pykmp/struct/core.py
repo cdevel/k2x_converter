@@ -149,7 +149,6 @@ class BaseSection:
                 "Input should be either a Parser or a DataDescriptor instance. "
                 f"Got {type(obj)}"
             )
-        self._check_section()
 
     def __getitem__(
         self: Self,
@@ -355,9 +354,6 @@ class BaseSection:
                     f"NaN values are not allowed. ({key}"
                     f"of {self.section} #{index:X})"
                 )
-
-    def _check_section(self) -> None:
-        pass
 
     def _init_from_dataframe(self, df: pd.DataFrame):
         pandas_utils.from_dataframe(df, self)
