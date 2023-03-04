@@ -64,18 +64,22 @@ class STGI(BaseSection):
 
     def _check_struct(self: Self, index: int, data: STGIStruct):
         super()._check_struct(index, data)
+        # 1. lap must be less than 10
         if data.lap > 9:
             warnings.warn(
                 f"lap must be less than 10. pykmp will set it to 9.")
             data.lap = Byte.convert(9)
+        # 2. poleposition must be 0 or 1
         if data.poleposition > 1:
             warnings.warn(
                 f"poleposition must be 0 or 1. pykmp will set it to 0.")
             data.poleposition = Byte.convert(0)
+        # 3. distancetype must be 0 or 1
         if data.distancetype > 1:
             warnings.warn(
                 f"distancetype must be 0 or 1. pykmp will set it to 0.")
             data.distancetype = Byte.convert(0)
+        # 4. flareflash must be 0 or 1
         if data.flareflash > 1:
             warnings.warn(
                 f"flareflash must be 0 or 1. pykmp will set it to 0.")

@@ -22,8 +22,10 @@ class KTPT(BaseSection):
     unknown: UInt16
 
     def _check_struct(self: Self, index: int, data: KTPTStruct):
+        # 1. playerIndex must 0 <= x <= 11.
         if data.playerIndex > 11:
             raise ValueError(
                 f"playerIndex of KTPT #{index:X} is out of range. "
-                f"expected x <= 11, got {data.playerIndex}."
+                f"expected x <= 11, got {data.playerIndex}. "
+                "Ignore it if the battle supported by 24 players."
             )

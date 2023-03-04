@@ -21,6 +21,7 @@ class CNPT(BaseSection):
     effect: Int16
 
     def _check_struct(self, index: int, data: CNPTStruct):
+        # 1. effect must 0 or 1, except for if additional type is defined in LEX.
         if data.effect > 2:
             warnings.warn(
                 f"effect of CNPT #{index:X} is out of range; "

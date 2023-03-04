@@ -118,19 +118,21 @@ class POTI(BaseSection):
         super().__setattr__(__name, __value)
 
     def _check_struct(self: Self, index: int, data: POTIStruct):
+        # 1. smooth must be 0 or 1
         if data.smooth > 1:
             warnings.warn(
                 f"smooth of POTI #{index:X} must be 0 or 1, "
                 "pykmp will set it to 0"
             )
             data.smooth = Byte.convert(0)
+        # 2. forward_backward must be 0 or 1
         if data.forward_backward > 1:
             warnings.warn(
                 f"forward_backward of POTI #{index:X} must be 0 or 1, "
                 "pykmp will set it to 0"
             )
             data.forward_backward = Byte.convert(0)
-
+        # 3. smooth must be 0 if the number of points is less than 3
         if data.smooth == 1 and len(data) < 3:
             warnings.warn(
                 f"smooth of POTI #{index:X} is 1, "

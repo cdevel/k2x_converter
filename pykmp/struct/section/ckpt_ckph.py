@@ -49,11 +49,15 @@ def fix_pt_prev_next(ckpt: CKPT, ckph: CKPH):
     Note this function will modify the `ckpt` in-place.
 
     Args:
-        ckpt (CKPT): The checkpoint. must have linked CKPH.
-        ckph (CKPH): The checkpoint path. must have linked CKPT.
+        ckpt (CKPT): The checkpoint. Must have linked CKPH.
+        ckph (CKPH): The checkpoint path. Must have linked CKPT.
     """
     if ckpt.empty and ckph.empty:
         return
+    elif not ckpt.empty and ckph.empty:
+        raise ValueError("CKPH is empty, but CKPT is not.")
+    elif ckpt.empty and not ckph.empty:
+        raise ValueError("CKPT is empty, but CKPH is not.")
 
     new_p_n: np.ndarray = None
     for start, length in zip(ckph.start, ckph.length):

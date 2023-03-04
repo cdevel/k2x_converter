@@ -49,20 +49,23 @@ class ENPH(BaseSection):
 
     def _check_struct(self, index: int, data: ENPHStruct):
         super()._check_struct(index, data)
+        # 1. Every `next` must have at least one next whose value is not 255,
+        # except for those for which dispatch is defined.
         if (
             np.all(data.prev == 255)
             and np.all(data.dispatch1 == 0)
             and np.all(data.dispatch2 == 0)
         ):
             warnings.warn(f"ENPH #{index:X} has no previous group.")
+        # 2. Every `next` must have at least one next whose value is not 255.
         if np.all(data.next == 255):
             warnings.warn(f"ENPH #{index:X} has no next group.")
-        # dispatch1: 0 <= x <= 7.
+        # 3. If `dispath1` is defined, range must be 0 <= x <= 7.
         if np.any(data.dispatch1 > 7):
             raise ValueError(
                 f"dispatch1(0x0E) must be 0 <= x <= 7. (ENPH #{index:X})")
-        # https://wiki.tockdom.com/wiki/Enemy_routes_in_battle_arenas
-        # dispatch2: 0x00, 0x40, 0x80, 0xC0.
+        # 4. If `dispath2` is defined, value must be 0x00, 0x40, 0x80 or 0xC0.
+        # see: https://wiki.tockdom.com/wiki/Enemy_routes_in_battle_arenas
         if np.any(data.dispatch2 & 0x3F):
             warnings.warn(
                 "For dispatch2(0x0F), only 0x00, 0x40, 0x80, 0xC0 are used, "

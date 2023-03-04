@@ -37,8 +37,9 @@ class AREA(BaseSection):
     unknown: UInt16
 
     def _check_struct(self, index: int, data: AREAStruct):
+        # 1. shape must 0 or 1.
         if data.shape > 1:
             warnings.warn(
-                f"shape of AREA #{index:X} is out of range; "
-                f"Ignore it if additional type is defined in LEX. "
+                f"shape of AREA #{index:X} is out of range."
+                f" value must be 0 or 1, but got {data.shape}."
             )

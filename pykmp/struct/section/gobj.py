@@ -207,6 +207,7 @@ class GOBJ(BaseSection):
     def _check_struct(self: Self, index: int, data: GOBJStruct):
         super()._check_struct(index, data)
 
+        # 1. If objectID requires a routeID, it must be specified.
         if data.objectID in _POTI_REQUIRED and data.routeID == 0xFFFF:
             warnings.warn(
                 f"The object (ID: 0x{data.objectID:X}) of GOBJ #{index:X} "
@@ -221,32 +222,41 @@ class GOBJ(BaseSection):
                     f"The maximum value is 0x{max_value:X}, but the "
                     f"value is 0x{value:X}."
                 )
+        # 2. defobj_type must be 0x00 ~ 0x07
         _raise_if_over('defobj_type', 0x07)
+        # 3. lecode_show must be 0x00 ~ 0x03
         _raise_if_over('preserved', 0x03)
+        # 4. preserved must be 0x00 ~ 0x3FF
         _raise_if_over('objectID', 0x3FF)
+        # 5. objectID must be 0x000 ~ 0x3F
         _raise_if_over('parameters', 0x3F)
+        # 6. mode must be 0x00 ~ 0x0F
         _raise_if_over('mode', 0x0F)
+        # 7. parameters must be 0x00 ~ 0x07
         _raise_if_over('unused', 0x07)
 
+        # 8. If this object is not LE_CODE mode, defobj_type, lecode_show,
+        #  preserved must be 0.
         if data.mode == 0 and (
             data.defobj_type != 0 or
             data.lecode_show != 0 or
             data.preserved != 0
         ):
-            # this object is not show in the game
             warnings.warn(
                 f"The object (ID: 0x{data.robjectID:X}) of GOBJ #{index:X} "
                 "is not show in the game. To show it, set mode to 1 or higher."
             )
-        # LE-MODE
+        # LE-CODE
         elif data.mode == 1:
-            # defobj_type supports 0, 1, 2, 3
+            # 9. If this object is LE_CODE mode, defobj_type
+            #  must be 0x00 ~ 0x03.
             if data.defobj_type not in [0, 1, 2, 3]:
                 warnings.warn(
                     f"For defobj_type of GOBJ #{index:X}, [0, 1, 2, 3] "
                     f"are supported, but {data.defobj_type} is given."
                     " This object may not show in the game."
                 )
+            # definition object
             elif data.defobj_type in [1, 2, 3]:
                 def _maybe_warn(vec, name):
                     if vec.any():
@@ -257,9 +267,11 @@ class GOBJ(BaseSection):
                         )
                         vec = np.zeros_like(vec)
                     return vec
+                # 10. If it is defintion object, pos, rot, scale must be 0.
                 data.pos = _maybe_warn(data.pos, 'pos')
                 data.rot = _maybe_warn(data.rot, 'rot')
                 data.scale = _maybe_warn(data.scale, 'scale')
+                # 11. If it is defintion object, routeID must not be specified.
                 if data.routeID != 0xFFFF:
                     warnings.warn(
                         f"For defobj_type={data.defobj_type} of GOBJ #{index:X}, "
@@ -267,6 +279,8 @@ class GOBJ(BaseSection):
                     )
                     data.routeID = UInt16.convert(0xFFFF)
             # predefined condition
+            # 12. If it has `predefined condition` and the value is
+            #  less than or equal to 0x1FFF, it must be a valid condition.
             if (
                 (0 < data.referenceID <= 0x1FFF)
                 and (
