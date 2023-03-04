@@ -52,6 +52,9 @@ def fix_pt_prev_next(ckpt: CKPT, ckph: CKPH):
         ckpt (CKPT): The checkpoint. must have linked CKPH.
         ckph (CKPH): The checkpoint path. must have linked CKPT.
     """
+    if ckpt.empty and ckph.empty:
+        return
+
     new_p_n: np.ndarray = None
     for start, length in zip(ckph.start, ckph.length):
         arange = np.arange(start, start + length)

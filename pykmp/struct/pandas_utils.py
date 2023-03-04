@@ -17,23 +17,29 @@ def merge_pt_ph(pt: pd.DataFrame, ph: pd.DataFrame) -> pd.DataFrame:
     cols = list(pt.columns) + list(ph.columns)
     df = pd.DataFrame(columns=cols)
 
+    if pt.empty and ph.empty:
+        return df
+
     for i in range(ph.shape[0]):
         start = ph.loc[i, 'start']
-        if not isinstance(start, int):
+        if not isinstance(start, int): # hex
             start = int(str(start), 0)
-        length = ph.loc[i, 'length']
-        if not isinstance(length, int):
-            length = int(str(length), 0)
-        loc_pt = pt.loc[start:start + length - 1]
-        loc_pt = loc_pt.reset_index(drop=True)
-        loc_ph = ph.iloc[i:i+1, :]
-        # add nan rows
-        nan_df = pd.concat([loc_ph] * (length - 1), ignore_index=True)
-        # all values are NaN
-        for col in nan_df.columns:
-            nan_df[col] = np.nan
 
-        loc_ph = pd.concat([loc_ph, nan_df], ignore_index=True, axis=0)
+        length = ph.loc[i, 'length']
+        if not isinstance(length, int): # hex
+            length = int(str(length), 0)
+
+        loc_pt = pt.loc[start:start + length - 1].reset_index(drop=True) # inclusive
+        loc_ph = ph.iloc[i:i+1, :].reset_index(drop=True)
+
+        # add nan rows (except singht point)
+        if length > 1:
+            nan_df = pd.concat([loc_ph] * (length - 1), ignore_index=True)
+            # all values are NaN
+            for col in nan_df.columns:
+                nan_df[col] = np.nan
+            loc_ph = pd.concat([loc_ph, nan_df], ignore_index=True, axis=0)
+
         df_ = pd.concat([loc_pt, loc_ph], axis=1)
         df = pd.concat([df, df_], ignore_index=True, axis=0)
 

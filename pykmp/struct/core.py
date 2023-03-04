@@ -215,18 +215,27 @@ class BaseSection:
             return False
         return self._to_descriptor(None) == other._to_descriptor(None)
 
-    def __dataframe__(self: Self, **kwargs: Any) -> pd.DataFrame:
-        return self.to_dataframe()
-
     def _repr_html_(self: Self) -> str:
         return self.to_dataframe()._repr_html_()
 
     @property
-    def section(self: Self):
+    def section(self: Self) -> str:
+        """
+        Returns the name of the section.
+
+        Returns:
+            str: Name of the section
+        """
         return self.__rname__
 
     @property
     def entries(self: Self):
+        """
+        How many entries are in the section.
+
+        Returns:
+            int: Number of entries
+        """
         return len(self._rdata)
 
     def add(
@@ -264,6 +273,16 @@ class BaseSection:
     @property
     def hex(self: Self) -> HexPrinter:
         return HexPrinter(self)
+
+    @property
+    def empty(self: Self) -> bool:
+        """
+        Check if the section is empty.
+
+        Returns:
+            bool: True if the section is empty, False otherwise.
+        """
+        return self.entries == 0
 
     def _pgetter(self: Self, name: str) -> np.ndarray:
         if not self.__indexing__:
